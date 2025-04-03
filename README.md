@@ -124,15 +124,14 @@ graph LR
     classDef decision fill:#fff2cc,stroke:#b38f00,stroke-width:2px,shape:diamond;
     classDef io fill:#e6ffe6,stroke:#006600,stroke-width:2px,shape:parallelogram;
     classDef state fill:#ffe6e6,stroke:#990000,stroke-width:2px,shape:ellipse;
-    classDef success fill:#d4edda,stroke:#155724,stroke-width:2px,shape:cylinder;
+    classDef success fill:#d4edda,stroke:#155724,stroke-width:2px,shape:cylinder; %% Changed success node to use cylinder style
 
     %% ================= Node Definitions =================
     %% Define Nodes with simpler IDs
     A[Appium: Detect CAPTCHA]:::process
-    B(Appium: Capture & Crop Screen):::process
+    B(Appium: Capture & Crop Screen):::process %% Using () for potentially rounded rectangle process
     C(OCR: Extract Instructions):::io
-    D{"Decision based on Instructions?"}:::decision
-    %% Note the triple semicolon is often needed for styling diamonds correctly
+    D{"Decision based on Instructions?"}:::decision %% Quotes added for text
     E(Package Image+Instructions):::io
     F(API Call: External Solver):::io
     G(Receive Solution / Cell Indices):::io
@@ -142,7 +141,7 @@ graph LR
     K(Wait Delay):::state
     L[Appium: Click 'Try Again' Coords]:::process
     M(Wait Delay):::state
-    N(Success: End Process):::success
+    N([Success: End Process]):::success %% Corrected to use ([]) for cylinder as per classDef
 
     %% ================= Link Definitions =================
     A --> B;
