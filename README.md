@@ -118,36 +118,53 @@ Key practical considerations included ensuring robust screenshot capture and pro
 
 ```mermaid
 graph LR
-    %% Left-to-right flow is often clearer for sequential processes
-
-    %% Define Styles (Keep these or adjust colors as you like)
+    %% ================= Styles Definition =================
+    %% Define Styles (Adjust colors/shapes as needed)
     classDef process fill:#e6f2ff,stroke:#005cb3,stroke-width:2px;
     classDef decision fill:#fff2cc,stroke:#b38f00,stroke-width:2px,shape:diamond;
     classDef io fill:#e6ffe6,stroke:#006600,stroke-width:2px,shape:parallelogram;
     classDef state fill:#ffe6e6,stroke:#990000,stroke-width:2px,shape:ellipse;
     classDef success fill:#d4edda,stroke:#155724,stroke-width:2px,shape:cylinder;
 
+    %% ================= Node Definitions =================
     %% Define Nodes with simpler IDs
-    A[Appium: Detect CAPTCHA]:::process --> B(Appium: Capture & Crop Screen):::process;
-    B --> C(OCR: Extract Instructions):::io;
-    C --> D{Decision based on Instructions?};;;decision;
+    A[Appium: Detect CAPTCHA]:::process
+    B(Appium: Capture & Crop Screen):::process
+    C(OCR: Extract Instructions):::io
+    D{Decision based on Instructions?};;;decision %% Note the triple semicolon for styling diamonds
+    E(Package Image+Instructions):::io
+    F(API Call: External Solver):::io
+    G(Receive Solution / Cell Indices):::io
+    H[Appium: Click Solution Coords]:::process
+    I(Wait Randomized Delay):::state
+    J[Appium: Click 'Verify' Coords]:::process
+    K(Wait Delay):::state
+    L[Appium: Click 'Try Again' Coords]:::process
+    M(Wait Delay):::state
+    N([Success: End Process]):::success
 
-    D -- Challenge Instructions --> E(Package Image+Instructions):::io;
-    E --> F(API Call: External Solver):::io;
-    F --> G(Receive Solution / Cell Indices):::io;
-    G --> H[Appium: Click Solution Coords]:::process;
-    H --> I(Wait Randomized Delay):::state;
+    %% ================= Link Definitions =================
+    A --> B;
+    B --> C;
+    C --> D;
+
+    D -- Challenge Instructions --> E;
+    E --> F;
+    F --> G;
+    G --> H;
+    H --> I;
     I --> B; %% Loop back to re-evaluate
 
-    D -- "Verify" Prompt --> J[Appium: Click 'Verify' Coords]:::process;
-    J --> K(Wait Delay):::state;
+    D -- "Verify" Prompt --> J;
+    J --> K;
     K --> B; %% Loop back to check status
 
-    D -- "'Try Again' Prompt" --> L[Appium: Click 'Try Again' Coords]:::process;
-    L --> M(Wait Delay):::state;
+    D -- "'Try Again' Prompt" --> L;
+    L --> M;
     M --> B; %% Loop back for new challenge
 
-    D -- "'Verification Complete'" --> N([Success: End Process]):::success;
+    D -- "'Verification Complete'" --> N;
+
 ```
 
 ---
