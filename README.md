@@ -77,6 +77,7 @@ Second, a diagnostic phase using Frida dynamic instrumentation revealed *why* st
     5.  This loop continued until success ("Verification Complete"), a maximum attempt limit was reached, or in some severe cases, an automated logout was performed by the app's security systems (indicating detection of bot behavior – a positive sign for the app's security, though needing improvement at the time).
 
 *   **Conceptual Pseudocode for the State Management Loop:**
+---
     ```pseudocode
     // Conceptual Loop Logic
     Function Solve_Captcha_Visually():
@@ -117,6 +118,7 @@ Second, a diagnostic phase using Frida dynamic instrumentation revealed *why* st
         Return FAILURE
     End Function
     ```
+---
 
 **2.3. Implementation Notes (Conceptual):**
 Key practical considerations included ensuring robust screenshot capture and processing, accurately calibrating the coordinate system for clicks relative to the dynamically located CAPTCHA area, implementing appropriate timeouts and retries for external API calls, adding randomized delays, and tapping areas to simulate more human-like interaction patterns (humans' taps are unpredictable).
