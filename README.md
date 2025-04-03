@@ -131,7 +131,7 @@ graph LR
     A[Appium: Detect CAPTCHA]:::process
     B(Appium: Capture & Crop Screen):::process
     C(OCR: Extract Instructions):::io
-    D{Decision based on Instructions?};;;decision
+    D{Decision based on Instructions?}:::decision
     %% Note the triple semicolon is often needed for styling diamonds correctly
     E(Package Image+Instructions):::io
     F(API Call: External Solver):::io
@@ -165,8 +165,8 @@ graph LR
     M --> B; %% Loop back for new challenge
 
     D -- "'Verification Complete'" --> N;
-
 ```
+
 
 ---
 
