@@ -124,14 +124,14 @@ graph LR
     classDef decision fill:#fff2cc,stroke:#b38f00,stroke-width:2px,shape:diamond;
     classDef io fill:#e6ffe6,stroke:#006600,stroke-width:2px,shape:parallelogram;
     classDef state fill:#ffe6e6,stroke:#990000,stroke-width:2px,shape:ellipse;
-    classDef success fill:#d4edda,stroke:#155724,stroke-width:2px,shape:cylinder; %% Changed success node to use cylinder style
+    classDef success fill:#d4edda,stroke:#155724,stroke-width:2px,shape:cylinder;
 
     %% ================= Node Definitions =================
     %% Define Nodes with simpler IDs
     A[Appium: Detect CAPTCHA]:::process
-    B(Appium: Capture & Crop Screen):::process %% Using () for potentially rounded rectangle process
+    B(Appium: Capture & Crop Screen):::process
     C(OCR: Extract Instructions):::io
-    D{"Decision based on Instructions?"}:::decision %% Quotes added for text
+    D{"Decision based on Instructions?"}:::decision
     E(Package Image+Instructions):::io
     F(API Call: External Solver):::io
     G(Receive Solution / Cell Indices):::io
@@ -141,7 +141,7 @@ graph LR
     K(Wait Delay):::state
     L[Appium: Click 'Try Again' Coords]:::process
     M(Wait Delay):::state
-    N([Success: End Process]):::success %% Corrected to use ([]) for cylinder as per classDef
+    N([Success: End Process]):::success
 
     %% ================= Link Definitions =================
     A --> B;
@@ -153,23 +153,21 @@ graph LR
     F --> G;
     G --> H;
     H --> I;
-    
     %% Loop back to re-evaluate
     I --> B;
 
     D -- "Verify" Prompt --> J;
     J --> K;
-    
     %% Loop back to check status
     K --> B;
 
     D -- "'Try Again' Prompt" --> L;
     L --> M;
-    
     %% Loop back for new challenge
     M --> B;
 
     D -- "'Verification Complete'" --> N;
+
 ```
 
 
