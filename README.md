@@ -118,7 +118,7 @@ This was crucial for handling the multi-step and stateful nature of the CAPTCHA 
     ```
 
 **2.3. Implementation Notes (Conceptual):**
-Key practical considerations included ensuring robust screenshot capture and processing, accurately calibrating the coordinate system for clicks relative to the dynamically located CAPTCHA area, implementing appropriate timeouts and retries for external API calls, adding randomized delays, and tapping areas to simulate more human-like interaction patterns (humans tend not to tap the same spot on each tap).
+Key practical considerations included ensuring robust screenshot capture and processing, accurately calibrating the coordinate system for clicks relative to the dynamically located CAPTCHA area, implementing appropriate timeouts and retries for external API calls, adding randomized delays, and tapping areas to simulate more human-like interaction patterns (humans' taps are unpredictable).
 
 **2.4. Workflow Visualization:**
 
@@ -182,37 +182,55 @@ graph LR
 
 **3. Demonstration & Analysis**
 
-**3.1. Applying the Technique:** This Orchestrated Visual Relay methodology was implemented as a Python script and integrated conceptually to function as the CAPTCHA-solving module within the broader OMEGA-T account generation workflow. It was triggered when the framework detected the presence of the CAPTCHA screen.
+**3.1. Applying the Technique:** This Orchestrated Visual Relay methodology was implemented as a Python script and integrated conceptually to function as the CAPTCHA-solving module within the broader OMEGA-T account generation workflow. It was triggered when the framework detected the presence of the CAPTCHA screen, allowing the tool to successfully complete CAPTCHA challenges for research.
 
-**3.2. Observed Effectiveness:** During the testing period, approximately six months prior to this report, the individual *challenge* success rate (correctly solving a single puzzle instance via the external service) was observed to be consistently high, often exceeding 95%. However, the overall *step* success rate (completing the entire multi-challenge CAPTCHA verification process from start to finish) averaged around **80%**. This discrepancy was attributed to several factors inherent in the real-time interaction, including:
-*   Latency introduced by the external solving service API communication. Both sending the task and receiving the result, images take time to render. Humans might solve a captcha in a second, so even one more second to communicate basically doubles that time, potentially flagging the account.
+**3.2. Observed Effectiveness:** During the testing period, approximately six months prior to this report (a safety precaution taken in order to protect the app), the individual *challenge* success rate (correctly solving a single puzzle instance via the external service) was observed to be consistently high, often exceeding 95%. However, the overall *step* success rate (completing the entire multi-challenge CAPTCHA verification process from start to finish) averaged around **80%**. This discrepancy was attributed to several factors inherent in the real-time interaction, including:
+*   Latency introduced by the external solving service API communication (mostly due to internet speed caused by using a proxy). Both sending the task and receiving the result as images take time to render. Humans might solve a captcha in a second, so even one more second to communicate basically doubles that time, potentially flagging the account.
 *   Variability in the complexity of different Arkose Labs challenge instances, affecting external solver response times. Yes, the dice while annoying, were proving to be very effective.
 *   The potential for detection mechanisms triggering additional challenges or failures based on interaction timing. My analysis suggested that sessions exhibiting overly consistent or unnaturally fast/slow interaction timings sometimes resulted in unpredictable failures or an increased number of sequential challenges being presented.
 *   To mitigate timing-based detection, randomized delays between actions and slight variations in click coordinates within target cells were incorporated, although optimizing this balance proved complex.
 *   An 80% overall step success rate was deemed sufficient proof-of-concept for this research phase, demonstrating the practical viability of the bypass despite these real-world complexities.
 
-**3.3. Challenges Encountered:** Beyond the timing and detection factors mentioned above, key practical challenges included:
-*   **Coordinate Calibration:** While dynamic location finding improved robustness, precise mapping of external solver indices to clickable coordinates required careful initial calibration for the target screen layout.
-*   **OCR Reliability:** Although generally reliable in testing, occasional OCR misinterpretations of instructions or state text ("Verify", "Try Again") could lead to incorrect actions and require retry logic.
-*   **External Service Dependency:** The entire process relies on the availability, speed, and accuracy of the unnamed third-party solving service.
+**3.3. Challenges Encountered:** 
 
-**3.4. Analysis of Resilience:** This successful demonstration leads to several conclusions regarding the resilience of this specific CAPTCHA implementation:
-*   **Implementation Vulnerability:** While the Arkose Labs puzzles themselves rely on complex cognitive tasks, the way they were implemented here (visually presented within an obscured WebView) was vulnerable to externalization. The difficulty of the puzzle was effectively outsourced.
+Beyond the timing and detection factors mentioned above, key practical challenges included:
+
+*   **Coordinate Calibration:** While dynamic location finding improved robustness, precise mapping of external solver indices to clickable coordinates required careful initial calibration for the target screen layout. However, once I figured out a reliable system, calibrating any version of iPhone (from 8 to 12) was pretty easy.
+
+*   **OCR Reliability:** Although generally reliable in testing, occasional OCR misinterpretations of instructions or state text ("Verify", "Try Again") could lead to incorrect actions and require retry logic. (This was a pretty rare occurrence, however)
+
+*   **External Service Dependency:** The entire process mostly relies on the availability, speed, and accuracy of the unnamed third-party solving service and internet speed.
+
+**3.4. Analysis of Resilience:** 
+
+This successful demonstration leads to several conclusions regarding the resilience of this specific CAPTCHA implementation:
+
+*   **Implementation Vulnerability:** While the Arkose Labs puzzles themselves rely on complex cognitive tasks, the way they were implemented here (visually presented within an obscured WebView) was vulnerable to externalization. The difficulty of the puzzle was effectively outsourced at the time.
+
 *   **Obscurity Bypass:** The WKWebView obscurity, while successfully preventing direct DOM interaction via standard Appium methods (as confirmed by Frida), did not prevent visual capture and coordinate-based interaction, rendering the obscurity measure insufficient against this attack vector.
+
 *   **Client-Side Defense Circumvention:** By sending the visual challenge externally, any client-side JavaScript-based fingerprinting or behavioral analysis occurring *within* the WebView during the puzzle interaction phase is largely bypassed, as the critical solving logic happens off-device or via human solvers through the external service.
 
 ---
 
 **4. Security Implications & Defensive Considerations**
 
-**Implications:** My findings demonstrate that even sophisticated CAPTCHAs like Arkose Labs, when deployed within native mobile applications, can be bypassed if the visual challenge itself can be reliably captured and relayed to an external solving entity. This highlights that UI obscurity alone is not a complete defense and enables the potential for scaled automated abuse, such as the account generation explored by the OMEGA-T framework.
+**Implications:** 
+
+My findings demonstrate that even sophisticated CAPTCHAs like Arkose Labs, when deployed within native mobile applications, can be bypassed if the visual challenge itself can be reliably captured and relayed to an external solving entity. This highlights that UI obscurity alone is not a complete defense and enables the potential for scaled automated abuse, such as the account generation explored by the OMEGA-T framework.
 
 **Potential Mitigations:** Strengthening defenses against this type of visual relay attack could involve a combination of approaches:
+
 *   **Enhanced Automation Detection:** More robust detection of the underlying automation framework (Appium, WDA) or indicators of coordinate-based interaction versus natural touches.
-*   **Visual Obfuscation:** Implementing techniques to make reliable screenshotting or OCR analysis more difficult (e.g., dynamic element positioning, interfering overlays, non-standard fonts). However, these often carry significant accessibility drawbacks.
+
+*   **Visual Obfuscation:** Implementing techniques to make reliable screenshotting or OCR analysis more difficult (e.g., dynamic element positioning, interfering overlays, non-standard fonts). However, these often carry significant accessibility drawbacks. **AN EFFECTIVE METHOD MIGHT BE THE DENIAL OF SCREENSHOTS DURING A CHALLENGE**
+
 *   **Tighter Client-Server Binding:** Strengthening the validation between the CAPTCHA token (passed via `messageHandlers`) and the specific native device session state. This could involve binding the token to cryptographic device attestations or session parameters that are difficult for an external process to replicate.
+
 *   **Server-Side Behavioral Analysis:** Analyzing the timing and sequence of interactions *associated with the CAPTCHA step* on the server-side (e.g., time from challenge presentation to clicks, time to click "Verify") before accepting the token passed from the client. Unusually fast, slow, or consistent timings could indicate automation.
-*   **Risk-Based Challenge Escalation:** Increasing the difficulty or frequency of challenges based on risk signals detected during the session *prior* to the CAPTCHA step.
+
+*   **Risk-Based Challenge Escalation:** Increasing the difficulty or frequency of challenges based on risk signals detected during the session *prior* to the CAPTCHA step. 
+*   **Unpredictable Captcha Challenge Occurrence:** Instead of consistent and predictable challenges for each account (a pattern of timing has been observed during testing), challenges could occur randomly. Having the challenge occur at some time after the account has been created might frustrate potentially malicious actors enough, in order to stop them from trying to automate any part of the app as a whole.
 
 ---
 
