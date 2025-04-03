@@ -131,7 +131,7 @@ graph LR
     A[Appium: Detect CAPTCHA]:::process
     B(Appium: Capture & Crop Screen):::process
     C(OCR: Extract Instructions):::io
-    D{Decision based on Instructions?}:::decision
+    D{"Decision based on Instructions?"}:::decision
     %% Note the triple semicolon is often needed for styling diamonds correctly
     E(Package Image+Instructions):::io
     F(API Call: External Solver):::io
@@ -142,7 +142,7 @@ graph LR
     K(Wait Delay):::state
     L[Appium: Click 'Try Again' Coords]:::process
     M(Wait Delay):::state
-    N([Success: End Process]):::success
+    N(Success: End Process):::success
 
     %% ================= Link Definitions =================
     A --> B;
@@ -154,18 +154,25 @@ graph LR
     F --> G;
     G --> H;
     H --> I;
-    I --> B; %% Loop back to re-evaluate
+    
+    %% Loop back to re-evaluate
+    I --> B;
 
     D -- "Verify" Prompt --> J;
     J --> K;
-    K --> B; %% Loop back to check status
+    
+    %% Loop back to check status
+    K --> B;
 
     D -- "'Try Again' Prompt" --> L;
     L --> M;
-    M --> B; %% Loop back for new challenge
+    
+    %% Loop back for new challenge
+    M --> B;
 
     D -- "'Verification Complete'" --> N;
 ```
+
 
 
 ---
