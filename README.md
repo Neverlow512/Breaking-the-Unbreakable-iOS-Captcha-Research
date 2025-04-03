@@ -117,7 +117,9 @@ Key practical considerations included ensuring robust screenshot capture and pro
 **2.4. Workflow Visualization:**
 
 ```mermaid
-graph LR %% Left-to-right flow is often clearer for sequential processes
+graph LR
+    %% Left-to-right flow is often clearer for sequential processes
+
     %% Define Styles (Keep these or adjust colors as you like)
     classDef process fill:#e6f2ff,stroke:#005cb3,stroke-width:2px;
     classDef decision fill:#fff2cc,stroke:#b38f00,stroke-width:2px,shape:diamond;
@@ -146,7 +148,6 @@ graph LR %% Left-to-right flow is often clearer for sequential processes
     M --> B; %% Loop back for new challenge
 
     D -- "'Verification Complete'" --> N([Success: End Process]):::success;
-
 ```
 
 ---
