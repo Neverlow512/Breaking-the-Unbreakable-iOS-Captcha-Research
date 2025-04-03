@@ -66,7 +66,7 @@ Second, a diagnostic phase using Frida dynamic instrumentation revealed *why* st
 
  This was crucial for handling the multi-step and stateful nature of the CAPTCHA process:
 
- 1.  After Appium clicked the solution cells, a brief, randomized wait was introduced.
+ *1.  After Appium clicked the solution cells, a brief, randomized wait was introduced.
  2.  Appium captured *another* screenshot of the CAPTCHA area.
  3.  OCR was performed on this *new* screenshot to determine the result or the next required state.
  4.  **Decision Logic:** Based on the extracted OCR text:
@@ -74,7 +74,7 @@ Second, a diagnostic phase using Frida dynamic instrumentation revealed *why* st
      *   If **"Try Again"** was detected, Appium clicked the "Try Again" button coordinates. *The entire cycle (capture, OCR, solve, click) restarted for the new challenge.*
      *   If **"Verification Complete"** was detected, the CAPTCHA step was considered *successful*, and the loop terminated.
      *   If **new puzzle instructions** were detected (indicating a multi-part challenge), the loop *returned to the external solver step* with the new image and instructions.
- 5.  This loop continued until success ("Verification Complete"), a maximum attempt limit was reached, or in some severe cases, an automated logout was performed by the app's security systems (indicating detection of bot behavior – a positive sign for the app's security, though needing improvement at the time).
+ 5.  This loop continued until success ("Verification Complete"), a maximum attempt limit was reached, or in some severe cases, an automated logout was performed by the app's security systems (indicating detection of bot behavior – a positive sign for the app's security, though needing improvement at the time).*
 
 *   **Conceptual Pseudocode for the State Management Loop:**
 ---
