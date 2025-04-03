@@ -1,4 +1,4 @@
-**Breaking the Unbreakable: Analyzing Arkose Labs' CAPTCHA Resilience in iOS Apps**
+**Breaking the Unbreakable: A Practical Analysis of Arkose Labs' CAPTCHA Resilience via Orchestrated Visual Relay on iOS**
 
 **Author:** Neverlow512
 
@@ -25,7 +25,7 @@ This research highlights that while the CAPTCHA puzzles themselves may be comple
 
 **1. Introduction: The Final Obstacle**
 
-**1.1. Recap of Prior Research:** My previous work involved two distinct phases. First, the development of the OMEGA-T framework demonstrated the potential for scalable iOS account generation automation but was ultimately halted by the appearance of an advanced CAPTCHA mechanism ["OMEGA-T: An Orchestrated Mobile Environment..."]. Second, a diagnostic phase using Frida dynamic instrumentation revealed *why* standard automation failed – the CAPTCHA (identified as Arkose Labs) was rendered within an obscured `WKWebView`, making its internal elements inaccessible to Appium. Crucially, this Frida analysis also identified the specific `window.webkit.messageHandlers` JavaScript-to-native bridge used to communicate the solved CAPTCHA token back to the native application code ["Diagnostic Instrumentation: Using Frida..."]. Direct interception or manipulation of this bridge was considered complex and potentially brittle for reliable automation.
+**1.1. Recap of Prior Research:** My previous work involved two distinct phases. First, the development of the OMEGA-T framework demonstrated the potential for scalable iOS account generation automation but was ultimately halted by the appearance of an advanced CAPTCHA mechanism ["OMEGA-T: An Orchestrated Mobile Environment Manipulation Framework for Scalable iOS Account Generation Analysis (Tinder Case Study)"](https://github.com/Neverlow512/OMEGA-T-Research/blob/main/README.md). Second, a diagnostic phase using Frida dynamic instrumentation revealed *why* standard automation failed – the CAPTCHA (identified as Arkose Labs) was rendered within an obscured `WKWebView`, making its internal elements inaccessible to Appium. Crucially, this Frida analysis also identified the specific `window.webkit.messageHandlers` JavaScript-to-native bridge used to communicate the solved CAPTCHA token back to the native application code ["Diagnostic Instrumentation: Using Frida to Navigate Obscured iOS WebView Challenges for Security Research"](https://github.com/Neverlow512/Frida-iOS-WebView-Investigation/blob/main/README.md). Direct interception or manipulation of this bridge was considered complex and potentially brittle for reliable automation.
 
 **1.2. Research Question:** With direct interaction blocked and interception deemed impractical, the central question became: *Could a practical and reasonably reliable bypass be engineered for this specific Arkose Labs implementation by treating the obscured CAPTCHA interface purely visually, externalizing the puzzle-solving aspect, and relaying the solution back via coordinate-based UI automation?*
 
@@ -69,52 +69,84 @@ This research highlights that while the CAPTCHA puzzles themselves may be comple
         *   If new puzzle instructions were detected (indicating a multi-part challenge), the loop returned to the external solver step with the new image and instructions.
     5.  This loop continued until success ("Verification Complete") or a maximum attempt limit was reached.
 
+    *Conceptual Pseudocode for the State Management Loop:*
+    ```pseudocode
+    // Conceptual Loop Logic
+    Function Solve_Captcha_Visually():
+        Attempts = 0
+        Loop while Attempts < Max_Attempts:
+            Attempts += 1
+            Screenshot = Capture_Captcha_Area()
+            Instructions = Perform_OCR(Screenshot)
+
+            If Instructions contains "Verification Complete":
+                Log("Success: Verification Complete detected.")
+                Return SUCCESS
+            Else If Instructions contains "Try Again":
+                Log("Info: 'Try Again' detected. Clicking and restarting loop.")
+                Click_Button("Try Again")
+                Wait(Short_Delay)
+                Continue Loop // Restart with new challenge
+            Else If Instructions contains "Verify":
+                Log("Info: 'Verify' detected. Clicking Verify and re-evaluating.")
+                Click_Button("Verify")
+                Wait(Short_Delay)
+                Continue Loop // Re-check state after clicking Verify
+            Else // Assumed standard challenge instructions
+                Log("Info: Standard challenge instructions detected.")
+                Solution = Call_External_Solver(Screenshot, Instructions)
+                If Solution is Valid:
+                    Apply_Clicks(Solution.Cell_Indices)
+                    Wait(Random_Delay)
+                    Continue Loop // Re-check state after applying clicks
+                Else:
+                    Log("Error: Failed to get valid solution from external solver.")
+                    // Optional: Implement retry logic for solver failure
+                    Return FAILURE // Or continue loop if retry logic exists
+                End If
+            End If
+        End Loop
+        Log("Error: Max attempts reached.")
+        Return FAILURE
+    End Function
+    ```
+
 **2.3. Implementation Notes (Conceptual):**
 Key practical considerations included ensuring robust screenshot capture and processing, accurately calibrating the coordinate system for clicks relative to the dynamically located CAPTCHA area, implementing appropriate timeouts and retries for external API calls, and adding randomized delays to simulate more human-like interaction patterns.
 
 **2.4. Workflow Visualization:**
 
 ```mermaid
-graph TD
-    subgraph "Orchestrated Visual Relay Loop"
-    direction LR %% Optional: Makes the main flow left-to-right
-
-    %% Nodes
-    A[Appium: Detect CAPTCHA Presence] --> B(Appium: Capture Screen & Crop to CAPTCHA Area);
-    B --> C{OCR: Extract Instructions};
-    C -- Instructions Indicate --> D{Decision Logic};
-
-    D -- "Standard Challenge" --> E[Package Image + Instructions];
-    E --> F(API Call: External Solver Service);
-    F --> G{Receive Solution (e.g., Cell Indices)};
-    G --> H[Appium: Translate Indices to Coords & Click Cells];
-    H --> I(Wait: Randomized Delay);
-    I --> B; %% Loop back to capture result
-
-    D -- "Verify Prompt Found" --> J[Appium: Click 'Verify' Button Coords];
-    J --> K(Wait: Delay);
-    K --> B; %% Loop back to check status after verify
-
-    D -- "'Try Again' Prompt Found" --> L[Appium: Click 'Try Again' Button Coords];
-    L --> M(Wait: Delay);
-    M --> B; %% Loop back to start new challenge
-
-    D -- "'Verification Complete' Found" --> N([Success: Exit Loop]);
-
-    %% Style Definitions (Optional - Customize as needed)
+graph LR %% Left-to-right flow is often clearer for sequential processes
+    %% Define Styles (Keep these or adjust colors as you like)
     classDef process fill:#e6f2ff,stroke:#005cb3,stroke-width:2px;
     classDef decision fill:#fff2cc,stroke:#b38f00,stroke-width:2px,shape:diamond;
     classDef io fill:#e6ffe6,stroke:#006600,stroke-width:2px,shape:parallelogram;
     classDef state fill:#ffe6e6,stroke:#990000,stroke-width:2px,shape:ellipse;
     classDef success fill:#d4edda,stroke:#155724,stroke-width:2px,shape:cylinder;
 
-    class A,B,H,J,L process;
-    class C,E,F,G,I io;
-    class D decision;
-    class K,M state;
-    class N success;
+    %% Define Nodes with simpler IDs
+    A[Appium: Detect CAPTCHA]:::process --> B(Appium: Capture & Crop Screen):::process;
+    B --> C(OCR: Extract Instructions):::io;
+    C --> D{Decision based on Instructions?};;;decision;
 
-    end
+    D -- Challenge Instructions --> E(Package Image+Instructions):::io;
+    E --> F(API Call: External Solver):::io;
+    F --> G(Receive Solution / Cell Indices):::io;
+    G --> H[Appium: Click Solution Coords]:::process;
+    H --> I(Wait Randomized Delay):::state;
+    I --> B; %% Loop back to re-evaluate
+
+    D -- "Verify" Prompt --> J[Appium: Click 'Verify' Coords]:::process;
+    J --> K(Wait Delay):::state;
+    K --> B; %% Loop back to check status
+
+    D -- "'Try Again' Prompt" --> L[Appium: Click 'Try Again' Coords]:::process;
+    L --> M(Wait Delay):::state;
+    M --> B; %% Loop back for new challenge
+
+    D -- "'Verification Complete'" --> N([Success: End Process]):::success;
+
 ```
 
 ---
